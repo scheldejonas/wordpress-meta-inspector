@@ -1,56 +1,89 @@
 <?php
 /**
- * Plugin Name: Meta Inspector
- * Description: See post, term, and user meta values, and easily update them.
- * Author: Alley Interactive, James Burke, Amy Evans
+ * Plugin Name: All Meta Inspector
+ * Description: See all meta data on post types, terms and users
+ * Author: Jonas Schelde
  * Version: 1.0.0
- * Author URI: http://alleyinteractive.com
+ * Author URI: https://www.jonasschelde.dk
+ * Plugin URI: 
  */
 
-class Meta_Inspector {
+class AllMetaInspector {
+
 
 	/**
-	 * Store the instance of Meta_Inspector for the singleton.
-	 * @var Meta_Inspector
+	 * instance
+	 * 
+	 * @var mixed
+	 * @access private
+	 * @static
 	 */
 	private static $instance;
 
+
 	/**
-	 * The type of meta being displayed. Can be `post`, `term`, or `user`.
-	 * @var string
+	 * type
+	 * 
+	 * @var mixed
+	 * @access private
+	 * @static
 	 */
 	private static $type;
 
+
 	/**
-	 * The ID of the object whose meta data is being rendered.
-	 * @var int
+	 * object_id
+	 * 
+	 * @var mixed
+	 * @access private
+	 * @static
 	 */
 	private static $object_id;
 
+
 	/**
-	 * Meta data array.
-	 * @var array
+	 * meta_data
+	 * 
+	 * @var mixed
+	 * @access private
+	 * @static
 	 */
 	private static $meta_data;
 
+
 	/**
-	 * Singleton instance implementation.
-	 * @return Meta_Inspector
+	 * instance function.
+	 * 
+	 * @access public
+	 * @static
+	 * @return void
 	 */
 	public static function instance() {
 		if ( ! isset( self::$instance ) ) {
-			self::$instance = new Meta_Inspector;
+			self::$instance = new AllMetaInspector;
 			self::setup();
 		}
 		return self::$instance;
 	}
 
+
+	/**
+	 * __constructor function.
+	 * 
+	 * @access private
+	 * @return void
+	 */
 	private function __constructor() {
 
 	}
 
+
 	/**
-	 * Replacement constructor for hooking actions
+	 * setup function.
+	 * 
+	 * @access private
+	 * @static
+	 * @return void
 	 */
 	private static function setup() {
 
@@ -81,11 +114,17 @@ class Meta_Inspector {
 
 		// Add meta inspector to users
 		add_action( 'edit_user_profile', array( self::$instance, 'user_meta'), 1000 );
+		
 		add_action( 'show_user_profile', array( self::$instance, 'user_meta'), 1000 );
+		
 	}
 
+
 	/**
-	 * Update any meta value via ajax
+	 * update_meta_value function.
+	 * 
+	 * @access public
+	 * @return void
 	 */
 	public function update_meta_value() {
 
@@ -155,8 +194,13 @@ class Meta_Inspector {
 		exit();
 	}
 
+
+
 	/**
-	 * Get post meta and generate a table
+	 * post_meta function.
+	 * 
+	 * @access public
+	 * @return void
 	 */
 	public function post_meta() {
 
@@ -169,8 +213,12 @@ class Meta_Inspector {
 		$this->generate_meta_table();
 	}
 
+
 	/**
-	 * Get term meta and generate a table
+	 * term_meta function.
+	 * 
+	 * @access public
+	 * @return void
 	 */
 	public function term_meta() {
 
@@ -188,8 +236,12 @@ class Meta_Inspector {
 		$this->generate_meta_table();
 	}
 
+
 	/**
-	 * Get user meta and generate a table
+	 * user_meta function.
+	 * 
+	 * @access public
+	 * @return void
 	 */
 	public function user_meta() {
 
@@ -212,8 +264,12 @@ class Meta_Inspector {
 		$this->generate_meta_table();
 	}
 
+
 	/**
-	 * Output all the necessary output for the meta table
+	 * generate_meta_table function.
+	 * 
+	 * @access public
+	 * @return void
 	 */
 	public function generate_meta_table() {
 
@@ -391,10 +447,17 @@ class Meta_Inspector {
 	}
 }
 
+
 /**
- * Return an instance of Meta_Inspector
+ * all_meta_inspector_instance function.
+ * 
+ * @access public
+ * @return void
  */
-function Meta_Inspector() {
-	return Meta_Inspector::instance();
+function all_meta_inspector_instance() {
+	
+	return AllMetaInspector::instance();
+	
 }
-add_action( 'plugins_loaded', 'Meta_Inspector' );
+
+add_action( 'plugins_loaded', 'all_meta_inspector_instance' );
