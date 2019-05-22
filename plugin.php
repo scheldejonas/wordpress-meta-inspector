@@ -5,7 +5,7 @@
  * Author: Jonas Schelde
  * Version: 1.0.0
  * Author URI: https://www.jonasschelde.dk
- * Plugin URI: 
+ * Plugin URI: https://github.com/scheldejonas/wordpress-meta-inspector
  */
 
 class AllMetaInspector {
@@ -93,7 +93,7 @@ class AllMetaInspector {
 		}
 
 		// Ajax endpoint to update meta data
-		add_action( 'wp_ajax_meta_inspector_update_meta_value', array( self::$instance, 'update_meta_value' ) );
+		add_action( 'wp_ajax_AllMetaInspector_update_meta_value', array( self::$instance, 'update_meta_value' ) );
 
 		// Add meta inspector to posts
 		add_action( 'add_meta_boxes', function(){
@@ -205,9 +205,9 @@ class AllMetaInspector {
 	public function post_meta() {
 
 		// Setup class for a post
-		Meta_Inspector::$object_id = get_the_ID();
-		Meta_Inspector::$type = 'post';
-		Meta_Inspector::$meta_data = get_post_meta( Meta_Inspector::$object_id );
+		AllMetaInspector::$object_id = get_the_ID();
+		AllMetaInspector::$type = 'post';
+		AllMetaInspector::$meta_data = get_post_meta( AllMetaInspector::$object_id );
 
 		// Generate table
 		$this->generate_meta_table();
@@ -228,9 +228,9 @@ class AllMetaInspector {
 		}
 
 		// Setup class for a post
-		Meta_Inspector::$type = 'term';
-		Meta_Inspector::$object_id = absint( $_GET['tag_ID' ] );
-		Meta_Inspector::$meta_data = get_term_meta( Meta_Inspector::$object_id );
+		AllMetaInspector::$type = 'term';
+		AllMetaInspector::$object_id = absint( $_GET['tag_ID' ] );
+		AllMetaInspector::$meta_data = get_term_meta( AllMetaInspector::$object_id );
 
 		// Generate table
 		$this->generate_meta_table();
@@ -247,18 +247,18 @@ class AllMetaInspector {
 
 		// Set $this->object_id to the user's ID
 		if ( defined('IS_PROFILE_PAGE') && IS_PROFILE_PAGE ) {
-			Meta_Inspector::$object_id = get_current_user_id();
+			AllMetaInspector::$object_id = get_current_user_id();
 
 		} elseif ( isset( $_GET['user_id'] ) ) {
-			Meta_Inspector::$object_id = absint( $_GET['user_id' ] );
+			AllMetaInspector::$object_id = absint( $_GET['user_id' ] );
 
 		} else {
 			return;
 		}
 
 		// Setup class for a post
-		Meta_Inspector::$type = 'user';
-		Meta_Inspector::$meta_data = get_user_meta( Meta_Inspector::$object_id );
+		AllMetaInspector::$type = 'user';
+		AllMetaInspector::$meta_data = get_user_meta( AllMetaInspector::$object_id );
 
 		// Generate table
 		$this->generate_meta_table();
@@ -274,12 +274,12 @@ class AllMetaInspector {
 	public function generate_meta_table() {
 
 		// Ensure that meta data actually exists
-		if ( empty( Meta_Inspector::$meta_data ) && ! is_array( Meta_Inspector::$meta_data ) ) {
+		if ( empty( AllMetaInspector::$meta_data ) && ! is_array( AllMetaInspector::$meta_data ) ) {
 			return;
 		}
 
 		// Generate a title if needed
-		switch ( Meta_Inspector::$type ) {
+		switch ( AllMetaInspector::$type ) {
 			case 'user' :
 				$title = __( 'User Meta', 'meta-inspector' );
 				break;
@@ -318,9 +318,9 @@ class AllMetaInspector {
 
 		<div
 			id="meta-inspector"
-			data-type="<?php echo esc_attr( Meta_Inspector::$type ); ?>"
-			data-nonce="<?php echo esc_attr( wp_create_nonce( 'update-meta-' . Meta_Inspector::$type ) ); ?>"
-			data-object-id="<?php echo esc_attr( Meta_Inspector::$object_id ) ?>"
+			data-type="<?php echo esc_attr( AllMetaInspector::$type ); ?>"
+			data-nonce="<?php echo esc_attr( wp_create_nonce( 'update-meta-' . AllMetaInspector::$type ) ); ?>"
+			data-object-id="<?php echo esc_attr( AllMetaInspector::$object_id ) ?>"
 		>
 			<?php
 
@@ -340,7 +340,7 @@ class AllMetaInspector {
 				<tbody>
 					<?php
 					// Loop through all meta keys
-					foreach ( Meta_Inspector::$meta_data as $key => $values ) {
+					foreach ( AllMetaInspector::$meta_data as $key => $values ) {
 
 						// Loop through values
 						foreach ( $values as $value ) {
@@ -393,7 +393,7 @@ class AllMetaInspector {
 
 					// Build data
 					var data = {
-						action: 'meta_inspector_update_meta_value',
+						action: 'AllMetaInspector_update_meta_value',
 						key: key,
 						type: type,
 						objectID, objectID,
@@ -449,15 +449,15 @@ class AllMetaInspector {
 
 
 /**
- * all_meta_inspector_instance function.
+ * all_AllMetaInspector_instance function.
  * 
  * @access public
  * @return void
  */
-function all_meta_inspector_instance() {
+function all_AllMetaInspector_instance() {
 	
 	return AllMetaInspector::instance();
 	
 }
 
-add_action( 'plugins_loaded', 'all_meta_inspector_instance' );
+add_action( 'plugins_loaded', 'all_AllMetaInspector_instance' );
