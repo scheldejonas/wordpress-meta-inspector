@@ -6,6 +6,8 @@
  * Version: 1.0.2
  * Author URI: https://www.jonasschelde.dk
  * Plugin URI: https://github.com/scheldejonas/wordpress-meta-inspector
+ * License:           GPL-2.0+
+ * License URI:       http://www.gnu.org/licenses/gpl-2.0.txt
  */
 
 class AllMetaInspector {
