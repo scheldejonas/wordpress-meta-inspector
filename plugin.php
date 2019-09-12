@@ -3,13 +3,12 @@
  * Plugin Name: All Meta Inspector
  * Description: See all meta data on post types, terms and users
  * Author: Jonas Schelde
- * Version: 1.0.2
+ * Version: 1.0.3
  * Author URI: https://www.jonasschelde.dk
  * Plugin URI: https://github.com/scheldejonas/wordpress-meta-inspector
- * License:           GPL-2.0+
- * License URI:       http://www.gnu.org/licenses/gpl-2.0.txt
  */
-
+ 
+ 
 class AllMetaInspector {
 
 
@@ -61,11 +60,19 @@ class AllMetaInspector {
 	 * @return void
 	 */
 	public static function instance() {
-		if ( ! isset( self::$instance ) ) {
+		
+		if ( 
+			! isset( self::$instance ) 
+		) {
+			
 			self::$instance = new AllMetaInspector;
+			
 			self::setup();
+			
 		}
+		
 		return self::$instance;
+		
 	}
 
 
@@ -89,35 +96,42 @@ class AllMetaInspector {
 	 */
 	private static function setup() {
 
+
 		// Allow access to admins only.
 		if ( ! current_user_can( 'manage_options' ) ) {
 			return;
 		}
 
+
 		// Ajax endpoint to update meta data
-		add_action( 'wp_ajax_AllMetaInspector_update_meta_value', array( self::$instance, 'update_meta_value' ) );
+		add_action( 'wp_ajax_AllMetaInspector_update_meta_value', [ self::$instance, 'update_meta_value' ] );
+
 
 		// Add meta inspector to posts
 		add_action( 'add_meta_boxes', function(){
 			add_meta_box(
 				'meta-inspector-metabox',
 				__( 'Post Meta Inspector', 'meta-inspector' ),
-				array( self::$instance, 'post_meta' ),
+				[ self::$instance, 'post_meta' ],
 				get_post_type()
 			);
 		} );
+
 
 		// Hook into all registered taxonomies
 		add_action( 'registered_taxonomy', function( $taxonomy ) {
 
 			// Add meta inspector to the bottom of the term edit screen
-			add_action( $taxonomy . '_edit_form', array( self::$instance, 'term_meta'), 1000 );
+			add_action( $taxonomy . '_edit_form', [ self::$instance, 'term_meta'], 1000 );
+			
 		}, 1000 );
 
+
 		// Add meta inspector to users
-		add_action( 'edit_user_profile', array( self::$instance, 'user_meta'), 1000 );
+		add_action( 'edit_user_profile', [ self::$instance, 'user_meta'], 1000 );
 		
-		add_action( 'show_user_profile', array( self::$instance, 'user_meta'), 1000 );
+		add_action( 'show_user_profile', [ self::$instance, 'user_meta'], 1000 );
+		
 		
 	}
 
@@ -130,70 +144,121 @@ class AllMetaInspector {
 	 */
 	public function update_meta_value() {
 
+
 		// Store errors
-		$errors = array();
+		$errors = [];
+
 
 		// All the data being passed into this call
-		$data = array(
+		$data = [
 			'key' => 'key',
 			'type' => 'type',
 			'object_id' => 'objectID',
 			'original_value' => 'originalValue',
 			'new_value' => 'newValue',
 			'nonce' => 'nonce',
-		);
+		];
+		
 
-		// Loop through $data to validate the $_POST values
-		foreach ( $data as $php_key => $js_key ) {
+		// Validate - new data
+		foreach ( $data as $php_key => $javascript_key ) {
 
-			// Does the $_POST value exist?
-			if ( isset( $_POST[ $js_key ] ) ) {
+			if ( 
+				isset( $_POST[ $javascript_key ] ) 
+			) {
 
-				//
-				$$php_key = sanitize_text_field( wp_unslash( $_POST[ $js_key ] ) );
+				$values[$php_key] = sanitize_text_field( 
+					wp_unslash( $_POST[ $javascript_key ] ) 
+				);
+				
 			} else {
-				$errors[ $js_key ] = "Invalid {$js_key}";
+				
+				$errors[ $javascript_key ] = "Invalid {$javascript_key}";
+				
 			}
+			
 		}
+		
+		extract($values);
+
 
 		// Verify nonce
-		if ( ! check_ajax_referer( 'update-meta-' . $type, 'nonce', false ) ) {
+		if (
+			! wp_verify_nonce( $nonce, 'all_update_meta_' . $type )
+		) {
+			
 			$errors['nonce'] = 'Invalid NONCE';
+			
 		}
+
 
 		// Send errors
-		if ( ! empty( $errors ) ) {
+		if ( 
+			! empty( $errors ) 
+		) {
+			
 			wp_send_json_error( $errors );
+			
 			exit();
+			
+		}
+		
+		
+		// Prepare - original value and new value
+		$prepared_original_value = @unserialize( $original_value );
+		
+		if (
+			$original_value === 'b:0;' || $prepared_original_value !== false
+		) {
+
+		    $original_value = @unserialize( $original_value );
+
 		}
 
+
 		// Determine which type of meta to update
-		switch ( $type ) {
+		switch ( 
+			$type 
+		) {
+			
 			case 'post' :
+			
 				$updated_meta = update_post_meta( $object_id, $key, $new_value, $original_value );
+				
 				break;
 
 			case 'term' :
+			
 				$updated_meta = update_term_meta( $object_id, $key, $new_value, $original_value );
+				
 				break;
 
 			case 'user' :
+			
 				$updated_meta = update_user_meta( $object_id, $key, $new_value, $original_value );
+				
 				break;
+
 		}
 
-		// Did meta data successfully update?
-		if ( true === $updated_meta ) {
 
-			// Send success message
-			wp_send_json_success( array(
+		// Respond - json answer
+		if ( 
+			true === $updated_meta 
+		) {
+
+			wp_send_json_success([
 				'newValue' => $new_value,
-			) );
+			]);
+			
 		} else {
-			wp_send_json_error( __( 'Meta data failed to update.', 'meta-inspector' ) );
+			
+			wp_send_json_error( $errors );
+			
 		}
 
 		exit();
+		
 	}
 
 
@@ -276,7 +341,7 @@ class AllMetaInspector {
 	public function generate_meta_table() {
 
 		// Ensure that meta data actually exists
-		if ( empty( AllMetaInspector::$meta_data ) && ! is_array( AllMetaInspector::$meta_data ) ) {
+		if ( empty( AllMetaInspector::$meta_data ) && ! is_[ AllMetaInspector::$meta_data ] ) {
 			return;
 		}
 
@@ -321,7 +386,7 @@ class AllMetaInspector {
 		<div
 			id="meta-inspector"
 			data-type="<?php echo esc_attr( AllMetaInspector::$type ); ?>"
-			data-nonce="<?php echo esc_attr( wp_create_nonce( 'update-meta-' . AllMetaInspector::$type ) ); ?>"
+			data-nonce="<?php echo esc_attr( wp_create_nonce( 'all_update_meta_' . AllMetaInspector::$type ) ); ?>"
 			data-object-id="<?php echo esc_attr( AllMetaInspector::$object_id ) ?>"
 		>
 			<?php
