@@ -3,7 +3,7 @@
  * Plugin Name: All Meta Inspector
  * Description: See all meta data on post types, terms and users
  * Author: Jonas Schelde
- * Version: 1.0.3
+ * Version: 1.0.5
  * Author URI: https://www.jonasschelde.dk
  * Plugin URI: https://github.com/scheldejonas/wordpress-meta-inspector
  */
@@ -212,6 +212,16 @@ class AllMetaInspector {
 		) {
 
 		    $original_value = @unserialize( $original_value );
+
+		}
+		
+		$prepared_new_value = @unserialize( $new_value );
+		
+		if (
+			$new_value === 'b:0;' || $prepared_new_value !== false
+		) {
+
+		    $new_value = @unserialize( $new_value );
 
 		}
 
